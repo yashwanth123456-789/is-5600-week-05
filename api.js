@@ -1,6 +1,5 @@
 const path = require('path')
 const Products = require('./products')
-const Orders = require('./orders')
 const autoCatch = require('./lib/auto-catch')
 
 /**
@@ -103,13 +102,6 @@ async function editOrder(req, res, next) {
     next(err);
   }
 }
-
-/**
- * Delete an order
- * @param {object} req
- * @param {object} res
- * @param {function} next
- */
 async function deleteOrder(req, res, next) {
   try {
     const { id } = req.params;
@@ -119,7 +111,6 @@ async function deleteOrder(req, res, next) {
     next(err);
   }
 }
-
 module.exports = autoCatch({
   handleRoot,
   listProducts,

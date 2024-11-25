@@ -4,7 +4,6 @@ const cuid = require('cuid')
 
 const db = require('./db')
 const productsFile = path.join(__dirname, 'data/full-products.json')
-
 const Product = db.model('Product', {
   _id: { type: String, default: cuid },
   description: { type: String },
@@ -30,7 +29,6 @@ const Product = db.model('Product', {
     title: { type: String, required: true },
   }], 
 })
-
 /**
  * List products
  * @param {*} options 
@@ -68,7 +66,6 @@ async function create (fields) {
   const product = await new Product(fields).save()
   return product
 }
-
 async function edit (_id, change) {
   const product = await get(_id)
 
@@ -81,7 +78,6 @@ async function edit (_id, change) {
 
   return product
 }
-
 async function destroy (_id) {
   return await Product.deleteOne({_id})
 }
