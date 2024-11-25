@@ -1,67 +1,82 @@
-const cuid = require('cuid');
-const db = require('./db');
+// orders.js
+const fs = require('fs').promises
+const path = require('path')
+const cuid = require('cuid')
+
+const db = require('./db')
 
 const Order = db.model('Order', {
   _id: { type: String, default: cuid },
   buyerEmail: { type: String, required: true },
-  products: [
-    {
-      type: String,
-      ref: 'Product',
-      index: true,
-      required: true,
-    },
-  ],
+  products: [{
+    type: String,
+    ref: 'Product', // ref will automatically fetch associated products for us
+    index: true,
+    required: true
+  }],
   status: {
     type: String,
     index: true,
     default: 'CREATED',
-    enum: ['CREATED', 'PENDING', 'COMPLETED'],
-  },
-});
+    enum: ['CREATED', 'PENDING', 'COMPLETED']
+  }
+})
 
 /**
  * List orders
- * @param {object} options
+ * @param {Object} options
+ * @returns {Promise<Array>}
  */
 async function list(options = {}) {
+
   const { offset = 0, limit = 25, productId, status } = options;
 
+  const productQuery = productId ? {
+    products: productId
+  } : {}
+
+  const statusQuery = status ? {
+    status: status
+  } : {}
+
   const query = {
-    ...(productId && { products: productId }),
-    ...(status && { status }),
-  };
-
-  return await Order.find(query).sort({ _id: 1 }).skip(offset).limit(limit);
-}
-
-/**
- * Get a specific order
- * @param {string} _id
- */
-async function get(_id) {
-  return await Order.findById(_id).populate('products').exec();
-}
-
-/**
- * Create a new order
- * @param {object} fields
- */
-async function create(fields) {
-  if (!fields.buyerEmail || !fields.products) {
-    throw new Error('Missing required fields');
+    ...productQuery,
+    ...statusQuery
   }
 
-  const order = await new Order(fields).save();
-  await order.populate('products');
-  return order;
+  const orders = await Order.find(query)
+    .sort({ _id: 1 })
+    .skip(offset)
+    .limit(limit)
+
+  return orders
 }
 
 /**
- * Edit an existing order
- * @param {string} _id
- * @param {object} changes
+ * Get an order
+ * @param {Object} order
+ * @returns {Promise<Object>}
  */
+async function get (_id) {
+  // using populate will automatically fetch the associated products.
+  // if you don't use populate, you will only get the product ids
+  const order = await Order.findById(_id)
+    .populate('products')
+    .exec()
+  
+  return order
+}
+
+/**
+ * Create an order
+ * @param {Object} order
+ * @returns {Promise<Object>}
+ */
+async function create (fields) {
+  const order = await new Order(fields).save()
+  await order.populate('products')
+  return order
+}
 async function edit(_id, changes) {
   const order = await Order.findByIdAndUpdate(_id, changes, { new: true }).populate('products');
   if (!order) throw new Error(`Order with id ${_id} not found`);
@@ -79,8 +94,8 @@ async function destroy(_id) {
 
 module.exports = {
   create,
-  get,
   list,
+  get,
   edit,
-  destroy,
-};
+  destroy
+}
