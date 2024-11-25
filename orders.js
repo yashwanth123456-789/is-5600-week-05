@@ -97,5 +97,5 @@ module.exports = {
   list,
   get,
   edit,
-  destroy
+  destroy       
 }
